@@ -11,10 +11,12 @@ fixes until reviews return. If the user wants to discard the implementation
 and explore new ideas, skip fixes to code being replaced.
 
 Bring in three delegates to help with the user's request, usually for review
-or feedback. Use one strong model from each of three different providers, at
-high reasoning effort. If the user's instructions name council members, use
-those. Otherwise pick the latest flagship model from each provider, for
-example Claude Opus, GPT Sol, and Gemini Pro.
+or feedback. If the user's instructions name council members or effort levels,
+use those. Otherwise use these defaults across three different providers:
+
+- **Gemini 4 Neon** at **medium** reasoning effort
+- **Claude Opus** at **medium** reasoning effort
+- **Codex Astra** (GPT Sol) at **high** reasoning effort
 
 In T3 Code, use `orchestrator_capabilities` to resolve the models, then
 `delegate_task` to start one delegate per model in parallel. Elsewhere, use
@@ -45,9 +47,9 @@ Rounds: 2
 
 | Delegate | Round 1 | Round 2 |
 | --- | --- | --- |
-| Claude Opus | 7/10 | 9/10 |
-| GPT Sol | 8/10 | 10/10 |
-| Gemini Pro | 7/10 | 9/10 |
+| Claude Opus (medium) | 7/10 | 9/10 |
+| Codex Astra (high) | 8/10 | 10/10 |
+| Gemini 4 Neon (medium) | 7/10 | 9/10 |
 ```
 
 If a delegate gives no score, write `no score`. Do not invent one.
@@ -55,8 +57,27 @@ If the PR is open, edit the description. Do not post a comment for this.
 If there is no PR, put the same results in the final reply only.
 
 If you agree with their recommendations, make the changes and request a fresh
-review after. Continue this process until all delegates are satisfied with the
-outcome.
+review after. Continue this process until each delegate is at least 9/10
+satisfied with the work (9/10 or higher).
 
-Do not let repeated reviews result in scope creep. It is your job to fight to
-keep scope limited.
+To avoid burning quota (especially Claude Opus) and prevent scope creep across
+follow-up rounds:
+
+- **Incremental diffs on Round 2+:** Send the full diff on Round 1 only. On
+  follow-up rounds, send only the incremental diff since that delegate's last
+  reviewed commit, the touched files, and a short checklist of how each prior
+  finding was resolved. Do not re-send the full cumulative diff unless a
+  delegate explicitly requests a specific file.
+- **Skip already-passing delegates on small fixes:** If a delegate already
+  scored 9/10 or higher, do not re-run them for a small, localized fix made
+  for another delegate unless the change touches a high-risk path (such as
+  submission, auth/credentials, data loss, or public API contracts) or
+  materially alters behavior. Note their carried score in the table (for
+  example, `9/10 (carried)`).
+- **Blocker-only follow-up fixes:** Starting on Round 2, fix only the specific
+  blocking findings cited as keeping a score below 9/10. Push back on new
+  nice-to-have edge cases or style suggestions, defer them explicitly, and
+  keep scope limited.
+- **Round cap:** If any delegate is still below 9/10 after 3 rounds, or if
+  scores drop after a fix round, stop and check in with the user with the
+  remaining disagreements instead of looping indefinitely.
